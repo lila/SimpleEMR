@@ -1,11 +1,37 @@
 SimpleEMR
+=========
 
-A simple custom jar meant to be executed on EMR.  builds with maven, into a custom jar.
-Then you upload that jar and sample data into S3, then use provided scripts to launch on
-EMR.
+A simple but non-trivial hadoop application that reads data into mappers and does
+nothing with the data.  Used primarily for training and performance testing.
+
+	- depends on external jar file (included in ./lib)
+
+TO USE:
+=======
+
+See included Makefile for various options.  The makefile can be used to create the
+emr cluster of various sizes, to launch jobs and to build the software. 
+
+% make 
+  make create - create a new cluster (10 c1.mediums instances)
+  make createlarge - create new cluster (10 cc1s)
+  make createlargeopt - 10 cc1's with lots of mappers
+  make createhuge - create new cluster (10 cc2's)
+  make createhugeopt - 10 cc2's with lots of mappers
+  make destroy - destroy cluster
+
+  (note: you can only build one cluster at a time!)
+ 
+  make runjob - submit SimpleEMR application into cluster
+  make runjobopt - submit simpleEMR applicaiton with optimal input split size
+
+make createhugeopt and make runjobopt give you the best performance.
+compare with make create and runjob.
+
 
 
 TO BUILD:
+=========
 
 % mvn package
 
@@ -14,13 +40,9 @@ This builds into ./target/SimpleEMR-0.1.0-job.jar
 This jar is an assembly, it includes all the dependencies as well as the application jar.  see
 pom.xml for configuration details.
 
-TO DEPLOY:
 
-copy the assembly to S3
-
-
-TO RUN:
-
+junk
+====
 download and install the elastic mapreduce commandline tools then create our job flow, then
 run your step.
 
