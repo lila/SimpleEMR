@@ -1,5 +1,10 @@
-package com.amazon.karanb.emr;
+// Simple EMR application that reads fasta files and does nothing in particular with them.
+//
+// used for tutorial or performance testing emr clusters
+// karan bhatia, karanb@amazon.com
 
+
+package com.amazon.karanb.emr;
 
 import gov.jgi.meta.hadoop.input.FastaInputFormat;
 import gov.jgi.meta.sequence.SequenceString;
@@ -32,21 +37,19 @@ public class SimpleEMR {
         public void map(Text seqid, Text s, Context context) throws IOException, InterruptedException {
 
             mapcount++;
-            context.write(new Text("total"), new LongWritable(SequenceString.byteArrayToSequence(s).length()));
+            context.write(new Text("total"), new LongWritable(1));
 
         }
     }
 
     public static class SimpleReducer extends Reducer<Text, LongWritable, Text, LongWritable> {
         public void reduce(Text key, Iterable<LongWritable> values, Context context)
-                throws InterruptedException, IOException
-        {
+                throws InterruptedException, IOException {
             StringBuilder sb = new StringBuilder();
 
             Long total = 0L;
 
-            for (LongWritable t : values)
-            {
+            for (LongWritable t : values) {
                 total += t.get();
             }
             context.write(key, new LongWritable(total));
@@ -54,32 +57,36 @@ public class SimpleEMR {
     }
 
 
-    private static String[] loadConfiguration(Configuration conf, String[] args) {
+    private static String[] loadConfiguration(Configuration conf, String[] args)
+            throws IOException
+    {
 
         return loadConfiguration(conf, null, args);
 
     }
 
-    private static String[] loadConfiguration(Configuration conf, String configurationFileName, String[] args) {
+    private static String[] loadConfiguration(Configuration conf, String configurationFileName, String[] args)
+            throws IOException
+    {
 
 
-      /*
-       * first load the configuration from the build properties (typically packaged in the jar)
-       */
-      System.out.println("loading application.properties ...");
-      try {
-         Properties buildProperties = new Properties();
-         buildProperties.load(SimpleEMR.class .getResourceAsStream("/application.properties"));
-         for (Enumeration e = buildProperties.propertyNames(); e.hasMoreElements();)
-         {
-            String k = (String)e.nextElement();
-            System.out.println("setting " + k + " to " + buildProperties.getProperty(k));
-            System.setProperty(k, buildProperties.getProperty(k));
-            conf.set(k, buildProperties.getProperty(k));
-         }
-      } catch (Exception e) {
-         System.out.println("unable to find application.properties ... skipping");
-      }        /*
+        /*
+        * first load the configuration from the build properties (typically packaged in the jar)
+        */
+        System.out.println("loading application.properties ...");
+        try {
+            Properties buildProperties = new Properties();
+            buildProperties.load(SimpleEMR.class.getResourceAsStream("/application.properties"));
+            for (Enumeration e = buildProperties.propertyNames(); e.hasMoreElements(); ) {
+                String k = (String) e.nextElement();
+                System.out.println("setting " + k + " to " + buildProperties.getProperty(k));
+                System.setProperty(k, buildProperties.getProperty(k));
+                conf.set(k, buildProperties.getProperty(k));
+            }
+        } catch (Exception e) {
+            System.out.println("unable to find application.properties ... skipping");
+        }
+        /*
         finally, allow user to override from commandline
          */
         return new GenericOptionsParser(conf, args).getRemainingArgs();
@@ -104,7 +111,7 @@ public class SimpleEMR {
     /**
      * starts off the hadoop application
      *
-     * @param args specify input file cassandra host and kmer size
+     * @param args input fasta sequence and output location
      * @throws Exception
      */
     public static void main(String[] args) throws Exception {
@@ -146,7 +153,7 @@ public class SimpleEMR {
 
         printConfiguration(conf, log, allProperties);
 
-        Job job = new Job(conf, System.getProperty("application.name")+"-"+System.getProperty("application.version")+"-step1");
+        Job job = new Job(conf, System.getProperty("application.name") + "-" + System.getProperty("application.version") + "-step1");
         job.setJarByClass(SimpleEMR.class);
         job.setMapperClass(SimpleMapper.class);
         job.setInputFormatClass(FastaInputFormat.class);
