@@ -28,12 +28,19 @@ emr cluster of various sizes, to launch jobs and to build the software.
 make createhugeopt and make runjobopt give you the best performance.
 compare with make create and runjob.
 
+Don't forget to terminate the cluster:  % make destroy or % elastic-mapreduce --terminate -j <jobflow>
 
+TO BUILD the java source:
+========================
 
-TO BUILD:
-=========
+1. you will likely need to add the biopig-core jar to your local maven repository since it
+is not available in any public repo.
 
-% mvn package
+   % mvn install:install-file -Dfile=./lib/biopig-core-0.3.0.jar -DgroupId=gov.jgi.gentech -DartifactId=biopig-core -Dversion=0.3.0 -Dpackaging=jar -DgeneratePom=true
+
+2. now build the assembly (jar of jars):
+
+   % mvn package
 
 This builds into ./target/SimpleEMR-0.1.0-job.jar
 
@@ -41,70 +48,3 @@ This jar is an assembly, it includes all the dependencies as well as the applica
 pom.xml for configuration details.
 
 
-junk
-====
-download and install the elastic mapreduce commandline tools then create our job flow, then
-run your step.
-
-% elastic-mapreduce --create --num-instances 2 --slave-instance-type "cc1.4xlarge" --alive --log-uri s3://com.amazon.karan/ebstest/logs
-
-% elastic-mapreduce  j-2ZFAZQCJG18RF --jar s3://com.amazon.karan.ebstest/SimpleEMR-0.1.0-job.jar --arg s3://com.amazon.karan.ebstest/input/1M.fas --arg s3://com.amazon.karan.ebstest/output 
-
-% elastic-mapreduce --logs j-2ZFAZQCJG18RF
-Listing steps for step 3
-ssh -i /Users/karanb/.ssh/normal.pem hadoop@ec2-184-73-108-208.compute-1.amazonaws.com cat /mnt/var/log/hadoop/steps/3/{syslog,stderr,stdout}
-2011-09-01 20:33:43,674 INFO com.amazon.karanb.emr.SimpleEMR (main): SimpleEMR[version 0.1.0] starting with following parameters
-2011-09-01 20:33:43,675 INFO com.amazon.karanb.emr.SimpleEMR (main): 	sequence file: s3://com.amazon.karan.ebstest/input/1M.fas
-2011-09-01 20:33:43,675 INFO com.amazon.karanb.emr.SimpleEMR (main): 	output dir: s3://com.amazon.karan.ebstest/output
-2011-09-01 20:33:43,684 INFO com.amazon.karanb.emr.SimpleEMR (main): --- application properties ---
-2011-09-01 20:33:43,684 INFO com.amazon.karanb.emr.SimpleEMR (main): 	option application.name:	SimpleEMR
-2011-09-01 20:33:43,684 INFO com.amazon.karanb.emr.SimpleEMR (main): 	option application.version:	0.1.0
-2011-09-01 20:33:43,684 INFO com.amazon.karanb.emr.SimpleEMR (main): --- system properties ---
-2011-09-01 20:33:43,684 INFO com.amazon.karanb.emr.SimpleEMR (main): 	option mapred.max.split.size:	524222
-2011-09-01 20:33:45,760 INFO org.apache.hadoop.mapred.JobClient (main): Default number of map tasks: 2
-2011-09-01 20:33:45,760 INFO org.apache.hadoop.mapred.JobClient (main): Default number of reduce tasks: 1
-2011-09-01 20:33:46,469 INFO org.apache.hadoop.mapreduce.lib.input.FileInputFormat (main): Total input paths to process : 1
-2011-09-01 20:33:46,476 INFO com.hadoop.compression.lzo.GPLNativeCodeLoader (main): Loaded native gpl library
-2011-09-01 20:33:46,478 INFO com.hadoop.compression.lzo.LzoCodec (main): Successfully loaded & initialized native-lzo library [hadoop-lzo rev 2334756312e0012cac793f12f4151bdaa1b4b1bb]
-2011-09-01 20:33:47,121 INFO org.apache.hadoop.mapred.JobClient (main): Running job: job_201109011410_0009
-2011-09-01 20:33:48,127 INFO org.apache.hadoop.mapred.JobClient (main):  map 0% reduce 0%
-2011-09-01 20:34:03,388 INFO org.apache.hadoop.mapred.JobClient (main):  map 14% reduce 0%
-2011-09-01 20:34:10,732 INFO org.apache.hadoop.mapred.JobClient (main):  map 19% reduce 0%
-2011-09-01 20:34:13,831 INFO org.apache.hadoop.mapred.JobClient (main):  map 41% reduce 0%
-2011-09-01 20:34:16,977 INFO org.apache.hadoop.mapred.JobClient (main):  map 53% reduce 0%
-2011-09-01 20:34:20,078 INFO org.apache.hadoop.mapred.JobClient (main):  map 65% reduce 0%
-2011-09-01 20:34:23,329 INFO org.apache.hadoop.mapred.JobClient (main):  map 77% reduce 0%
-2011-09-01 20:34:25,433 INFO org.apache.hadoop.mapred.JobClient (main):  map 89% reduce 0%
-2011-09-01 20:34:28,554 INFO org.apache.hadoop.mapred.JobClient (main):  map 100% reduce 0%
-2011-09-01 20:34:31,570 INFO org.apache.hadoop.mapred.JobClient (main):  map 100% reduce 100%
-2011-09-01 20:34:33,580 INFO org.apache.hadoop.mapred.JobClient (main): Job complete: job_201109011410_0009
-2011-09-01 20:34:33,586 INFO org.apache.hadoop.mapred.JobClient (main): Counters: 17
-2011-09-01 20:34:33,586 INFO org.apache.hadoop.mapred.JobClient (main):   Job Counters 
-2011-09-01 20:34:33,586 INFO org.apache.hadoop.mapred.JobClient (main):     Launched reduce tasks=1
-2011-09-01 20:34:33,586 INFO org.apache.hadoop.mapred.JobClient (main):     Rack-local map tasks=2
-2011-09-01 20:34:33,586 INFO org.apache.hadoop.mapred.JobClient (main):     Launched map tasks=2
-2011-09-01 20:34:33,586 INFO org.apache.hadoop.mapred.JobClient (main):   FileSystemCounters
-2011-09-01 20:34:33,586 INFO org.apache.hadoop.mapred.JobClient (main):     FILE_BYTES_READ=47
-2011-09-01 20:34:33,586 INFO org.apache.hadoop.mapred.JobClient (main):     S3_BYTES_READ=1053143
-2011-09-01 20:34:33,586 INFO org.apache.hadoop.mapred.JobClient (main):     FILE_BYTES_WRITTEN=179
-2011-09-01 20:34:33,587 INFO org.apache.hadoop.mapred.JobClient (main):     S3_BYTES_WRITTEN=13
-2011-09-01 20:34:33,587 INFO org.apache.hadoop.mapred.JobClient (main):   Map-Reduce Framework
-2011-09-01 20:34:33,587 INFO org.apache.hadoop.mapred.JobClient (main):     Reduce input groups=1
-2011-09-01 20:34:33,587 INFO org.apache.hadoop.mapred.JobClient (main):     Combine output records=2
-2011-09-01 20:34:33,587 INFO org.apache.hadoop.mapred.JobClient (main):     Map input records=10638
-2011-09-01 20:34:33,587 INFO org.apache.hadoop.mapred.JobClient (main):     Reduce shuffle bytes=68
-2011-09-01 20:34:33,587 INFO org.apache.hadoop.mapred.JobClient (main):     Reduce output records=1
-2011-09-01 20:34:33,587 INFO org.apache.hadoop.mapred.JobClient (main):     Spilled Records=4
-2011-09-01 20:34:33,587 INFO org.apache.hadoop.mapred.JobClient (main):     Map output bytes=148932
-2011-09-01 20:34:33,587 INFO org.apache.hadoop.mapred.JobClient (main):     Combine input records=10638
-2011-09-01 20:34:33,587 INFO org.apache.hadoop.mapred.JobClient (main):     Map output records=10638
-2011-09-01 20:34:33,587 INFO org.apache.hadoop.mapred.JobClient (main):     Reduce input records=2
-loading application.properties ...
-setting mapred.max.split.size to 524222
-setting application.name to SimpleEMR
-setting application.version to 0.1.0
-
-don't forget to terminate the jobflow:
-
-% elastic-mapreduce --terminate j-2ZFAZQCJG18RF
- 
