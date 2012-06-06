@@ -26,26 +26,51 @@ import java.util.Properties;
 
 public class SimpleEMR {
 
+    /*
+     * private member variables
+     */
     static Logger log = Logger.getLogger(SimpleEMR.class);
 
+
+    /**
+     * simple map class that reads data and then throws it away.  the output is always <"total", 1>
+     */
     public static class SimpleMapper
             extends Mapper<Text, Text, Text, LongWritable> {
 
-        Logger log = Logger.getLogger(this.getClass());
-        int mapcount = 0;
+        int mapcount = 0;  // to count the number of map tasks
 
+        /** map task, read sequences with sequence id, seqid, and output key/value "total"/1
+         *
+         * @param seqid the sequence id from the fasta file
+         * @param s the compressed sequence
+         * @param context hadoop context
+         * @throws IOException
+         * @throws InterruptedException
+         */
         public void map(Text seqid, Text s, Context context) throws IOException, InterruptedException {
-
             mapcount++;
-            context.write(new Text("total"), new LongWritable(1));
-
+            long numBasePairs = SequenceString.numBases(SequenceString.sequenceToByteArray(s.toString()));
+            context.write(new Text("total"), new LongWritable(numBasePairs));
         }
     }
 
+    /** simple reducer class that sums the values of each key
+     *
+     * output will equal the total number of map tasks completed
+     */
     public static class SimpleReducer extends Reducer<Text, LongWritable, Text, LongWritable> {
+
+        /** sum all the values of for each key
+         *
+         * @param key
+         * @param values
+         * @param context
+         * @throws InterruptedException
+         * @throws IOException
+         */
         public void reduce(Text key, Iterable<LongWritable> values, Context context)
                 throws InterruptedException, IOException {
-            StringBuilder sb = new StringBuilder();
 
             Long total = 0L;
 
@@ -56,20 +81,15 @@ public class SimpleEMR {
         }
     }
 
-
     private static String[] loadConfiguration(Configuration conf, String[] args)
             throws IOException
     {
-
         return loadConfiguration(conf, null, args);
-
     }
 
     private static String[] loadConfiguration(Configuration conf, String configurationFileName, String[] args)
             throws IOException
     {
-
-
         /*
         * first load the configuration from the build properties (typically packaged in the jar)
         */
@@ -131,10 +151,8 @@ public class SimpleEMR {
             System.exit(2);
         }
 
-        //long sequenceFileLength = 0;
-
         /*
-        seems to help in file i/o performance
+         * seems to help in file i/o performance
          */
         conf.setInt("io.file.buffer.size", 1024 * 1024);
 
